@@ -25,7 +25,7 @@ TARGET_FRAMES = 86
 THRESHOLD = 0.7
 
 # Paths
-model_path = r'D:\Model_final\stammer_detector_optimized2.h5'
+model_path = r'model\stammer_detector_optimized2.h5'  # Update with your model path
 
 # Load the model
 logger.info("Loading model...")
