@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Poppins", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #f6f6e9;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@theme {
+  --color-primary: #457d58;
+  --color-dark: #272727;
+  --color-light: #f6f6e9;
+  --color-primary-200: #7d9b76;
+  --color-secondaryblue: #cbddd1;
+  --font-poppins: Poppins, sans-serif;
+}
+
+.detail-card {
+  @apply bg-light border-primary border-2 shadow-md rounded-xl p-6 flex flex-col items-center w-60 text-dark;
+}
+
+.session-card {
+  @apply bg-light border-primary border-2 shadow-lg rounded-xl p-6;
+}
+
+.icon {
+  @apply text-primary text-3xl mb-2;
+}
+
+.detail-card {
+  @apply bg-light border-primary border-2 shadow-md rounded-xl p-6 flex flex-col items-center w-60 text-dark;
+}
+
+.session-card {
+  @apply bg-light border-primary border-2 shadow-lg rounded-xl p-6;
+}
+
+.icon {
+  @apply text-primary text-3xl mb-2;
+}
+
+.custom-calendar {
+  border: none;
+  font-family: "Poppins", sans-serif;
+  background: var(--color-light);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.custom-calendar .react-calendar__tile {
+  padding: 10px;
+  border-radius: 8px;
+  transition: 0.2s ease-in-out;
+}
+
+.custom-calendar .react-calendar__tile:hover {
+  background-color: var(--color-primary-200);
+  color: white;
+}
+
+.session-past {
+  background: var(--color-primary);
+  color: white !important;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.session-next {
+  background: var(--color-primary-200);
+  color: var(--color-dark) !important;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.react-calendar__navigation {
+  background: var(--color-primary);
+  color: white;
+  font-weight: bold;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.detail-card {
+  @apply bg-light border-primary border-2 shadow-md rounded-xl p-6 flex flex-col items-center w-60 text-dark;
+}
+
+.session-card {
+  @apply bg-light border-primary border-2 shadow-lg rounded-xl p-6;
+}
+
+.icon {
+  @apply text-primary text-3xl mb-2;
+}
+
+.detail-card {
+  @apply bg-light border-primary border-2 shadow-md rounded-xl p-6 flex flex-col items-center w-60 text-dark;
+}
+
+.session-card {
+  @apply bg-light border-primary border-2 shadow-lg rounded-xl p-6;
+}
+
+.icon {
+  @apply text-primary text-3xl mb-2;
+}
+
+.custom-calendar {
+  border: none !important;
+    width: 100%;
+    max-width: 400px;
+}
+
+.react-calendar__tile {
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.react-calendar__tile:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.session-past {
+  background-color: rgba(255, 99, 132, 0.8) !important;
+  color: white !important;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.session-next {
+  background-color: rgba(54, 162, 235, 0.8) !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 8px;
+  }
+  
+  .custom-calendar {
+    border: none !important;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .react-calendar__tile {
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .react-calendar__tile:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+  }
+  
+  .session-past {
+    background-color: rgba(255, 99, 132, 0.8) !important;
+    color: white !important;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.session-next {
+  background-color: rgba(54, 162, 235, 0.8) !important;
+  color: white !important;
+  font-weight: bold;
+  border-radius: 8px;
+}
