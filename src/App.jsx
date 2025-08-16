@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import leftImage from './assets/agent.png';
 import centerImage from './assets/laptop.png';
 import rightImage from './assets/user.png';
-
+//Team-VerboFix
 // Import your page components
 import Login from './pages/Login';
 import Signup from './pages/Signup';
