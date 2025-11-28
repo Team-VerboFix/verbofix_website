@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
+import { Eye, EyeOff } from "lucide-react";
+import API from "../api/api";
 import userLeft from "../assets/user-img1.png";
 import userRight from "../assets/user-img-2.png";
 import speakerLeft from "../assets/spk-img-1.png";
@@ -14,16 +15,18 @@ const Signup = () => {
   const [age, setAge] = useState("");
   const [parentDetails, setParentDetails] = useState("");
   const [proof, setProof] = useState(null);
-  const [role, setRole] = useState("User"); // Default role
+  const [role, setRole] = useState("User");
   const [employed, setEmployed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!name || !place || !phone || !age || !termsAccepted) {
+    if (!name || !place || !phone || !age || !termsAccepted || !password) {
       alert("Please fill all required fields and accept Terms & Conditions.");
       return;
     }
@@ -38,17 +41,31 @@ const Signup = () => {
       return;
     }
 
-    navigate(role === "User" ? "/user-home" : "/speaker-home", {
-      state: {
-        userName: name,
-        place: place,
-        phone: phone,
-        age: age,
-        parentDetails: parentDetails,
-        role: role,
-        employed: employed,
-      },
-    });
+    try {
+      const formData = new FormData();
+      formData.append("username", name);
+      formData.append("first_name", name.split(" ")[0]);
+      formData.append("last_name", name.split(" ")[1] || "");
+      formData.append("place", place);
+      formData.append("phone", phone);
+      formData.append("age", age);
+      formData.append("role", role);
+      formData.append("email", `${name}@verbofix.com`);
+      formData.append("password", password);
+
+      if (proof) formData.append("proof", proof);
+
+      const res = await API.post("accounts/register/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log("Registration success:", res.data);
+      alert("Account created successfully! You can now log in.");
+      navigate("/login", { state: { role } });
+    } catch (err) {
+      console.error("Signup error:", err.response ? err.response.data : err.message);
+      alert("Registration failed. Please try again.");
+    }
   };
 
   const leftImage = role === "User" ? userLeft : speakerLeft;
@@ -66,7 +83,6 @@ const Signup = () => {
         transition={{ duration: 0.5 }}
       />
 
-      {/* Signup Card */}
       <div className="relative bg-dark bg-opacity-10 backdrop-blur-lg p-12 rounded-xl drop-shadow-md border-2 border-secondaryblue w-108 font-poppins hover:drop-shadow-2xl transition z-4 mt-36">
         <h2 className="text-3xl font-extrabold text-light text-center mb-6">
           Sign Up
@@ -109,7 +125,26 @@ const Signup = () => {
             required
           />
 
-          {/* Age-dependent fields for User Role */}
+          {/* Password Input */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-light text-dark border border-primary rounded-md text-lg pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-600 hover:text-primary focus:outline-none"
+            >
+              {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+            </button>
+          </div>
+
+          {/* Age-dependent & Employment Logic unchanged */}
           {role === "User" && age < 18 && (
             <>
               <input
@@ -120,7 +155,6 @@ const Signup = () => {
                 className="w-full px-4 py-3 bg-light text-dark border border-primary rounded-md text-lg"
                 required
               />
-
               <input
                 type="file"
                 onChange={(e) => setProof(e.target.files[0])}
@@ -130,11 +164,12 @@ const Signup = () => {
             </>
           )}
 
-          {/* Employment field for Speaker Role */}
           {role === "Speaker" && (
             <>
               <div className="flex items-center gap-4">
-                <label className="text-light font-bold text-lg">Employment:</label>
+                <label className="text-light font-bold text-lg">
+                  Employment:
+                </label>
                 <button
                   type="button"
                   className={`px-4 py-2 text-lg font-semibold rounded-md transition ${
@@ -145,7 +180,6 @@ const Signup = () => {
                   {employed ? "Employed" : "Unemployed"}
                 </button>
               </div>
-
               {employed && (
                 <input
                   type="file"
@@ -166,7 +200,6 @@ const Signup = () => {
             >
               User
             </span>
-
             <motion.div
               className="relative w-20 h-10 bg-light border border-primary rounded-full flex items-center px-1 cursor-pointer"
               onClick={() => setRole(role === "User" ? "Speaker" : "User")}
@@ -179,7 +212,6 @@ const Signup = () => {
                 transition={{ type: "spring", stiffness: 300 }}
               />
             </motion.div>
-
             <span
               className={`text-light font-bold text-lg ${
                 role === "Speaker" ? "opacity-100" : "opacity-50"
@@ -189,7 +221,7 @@ const Signup = () => {
             </span>
           </div>
 
-          {/* Terms & Conditions */}
+          {/* Terms */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -200,13 +232,15 @@ const Signup = () => {
             />
             <label className="text-light">
               I accept the{" "}
-              <a href="/terms" className="text-secondaryblue font-semibold hover:underline">
+              <a
+                href="/terms"
+                className="text-secondaryblue font-semibold hover:underline"
+              >
                 Terms & Conditions
               </a>
             </label>
           </div>
 
-          {/* Signup Button */}
           <button
             type="submit"
             className="w-full py-3 rounded-md text-light font-semibold text-lg bg-primary-200 hover:bg-primary transition-all"

@@ -1,37 +1,69 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react"; // 👁️ import icons
+import API from "../api/api";
 
-// Import images for both roles
+// Import images
 import userLeft from "../assets/user-img1.png";
 import userRight from "../assets/user-img-2.png";
 import speakerLeft from "../assets/spk-img-1.png";
 import speakerRight from "../assets/spk-img-2.png";
 
 const Login = () => {
-  const [name, setName] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Extract role from URL query parameter
   const initialRole = location.state?.role || "User";
 
-  
-  const [role, setRole] = useState(initialRole); // Default role
+  const [role, setRole] = useState(initialRole);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👁️ toggle visibility
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    if (name.trim() === "") {
-      alert("Please enter your name");
-      return;
+    try {
+      const res = await API.post("accounts/login/", {
+        username,
+        password,
+        role,
+      });
+
+      const { access, refresh } = res.data;
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+
+      const me = await API.get("accounts/me/");
+      const userRole = me.data.role;
+
+      if (userRole !== role) {
+        setError(
+          `This account is registered as a ${userRole}. Please switch to ${userRole} login.`
+        );
+        localStorage.clear();
+        return;
+      }
+
+      if (userRole === "Speaker") {
+        navigate("/speaker-home", { state: { userName: me.data.username } });
+      } else if (userRole === "User") {
+        navigate("/user-home", { state: { userName: me.data.username } });
+      } else {
+        setError("Unknown user role. Contact support.");
+      }
+    } catch (err) {
+      console.error("Login error:", err.response ? err.response.data : err.message);
+      setError("Invalid username, password, or role.");
+    } finally {
+      setLoading(false);
     }
-
-    // Navigate based on role
-    navigate(role === "User" ? "/user-home" : "/speaker-home", { state: { userName: name } });
   };
 
-  // Assign images based on the selected role
   const leftImage = role === "User" ? userLeft : speakerLeft;
   const rightImage = role === "User" ? userRight : speakerRight;
 
@@ -50,21 +82,44 @@ const Login = () => {
 
       {/* Login Card */}
       <div className="relative bg-dark bg-opacity-10 backdrop-blur-lg p-12 rounded-xl drop-shadow-md border-2 border-secondaryblue w-108 font-poppins hover:drop-shadow-2xl transition z-4">
-        <h2 className="text-3xl font-extrabold text-light text-center mb-6">Login</h2>
+        <h2 className="text-3xl font-extrabold text-light text-center mb-6">
+          Login
+        </h2>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          {/* Name Input */}
           <input
             type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-3 bg-light text-dark placeholder-primary-200 border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 font-semibold text-lg"
           />
 
-          {/* Role Selector with Toggle */}
+          {/* Password with Eye Toggle */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-light text-dark placeholder-primary-200 border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary-200 font-semibold text-lg pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-600 hover:text-primary focus:outline-none"
+            >
+              {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+            </button>
+          </div>
+
+          {/* Role Toggle */}
           <div className="flex justify-center items-center gap-4">
-            <span className={`text-light font-bold transition-all text-lg ${role === "User" ? "opacity-100" : "opacity-50"}`}>
+            <span
+              className={`text-light font-bold transition-all text-lg ${
+                role === "User" ? "opacity-100" : "opacity-50"
+              }`}
+            >
               User
             </span>
 
@@ -81,24 +136,33 @@ const Login = () => {
               />
             </motion.div>
 
-            <span className={`text-light font-bold transition-all text-lg ${role === "Speaker" ? "opacity-100" : "opacity-50"}`}>
+            <span
+              className={`text-light font-bold transition-all text-lg ${
+                role === "Speaker" ? "opacity-100" : "opacity-50"
+              }`}
+            >
               Speaker
             </span>
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             className="w-full py-3 rounded-md text-light font-semibold text-lg bg-primary-200 hover:bg-primary hover:text-light transition-all"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        {/* Signup Link */}
+        {error && (
+          <p className="text-red-400 text-center mt-3 font-medium">{error}</p>
+        )}
+
         <p className="text-center text-light mt-4">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-secondaryblue font-semibold hover:underline">
+          Don’t have an account?{" "}
+          <a
+            href="/signup"
+            className="text-secondaryblue font-semibold hover:underline"
+          >
             Sign Up
           </a>
         </p>

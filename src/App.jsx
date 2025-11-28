@@ -14,6 +14,7 @@ import SpeakerSessionPage from './pages/SpeakerSessionPage';
 import UserSessionPage from './pages/UserSessionPage';
 import UserReportPage from './pages/UserReportPage';
 import UserStammerAnalysisPage from './pages/UserStammerAnalysisPage';
+import SessionPage from './pages/SessionPage';
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
           <Route path="/user-home/session" element={<UserSessionPage />} />
           <Route path="/user-home/report" element={<UserReportPage />} />
           <Route path="/user-home/stammer-analysis" element={<UserStammerAnalysisPage />} />
-          {/* Add more routes as needed */}
+          <Route path="/session/:id" element={<SessionPage />} />
         </Routes>
       </div>
     </Router>

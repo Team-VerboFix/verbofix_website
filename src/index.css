@@ -7,7 +7,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #f6f6e9;
+  background-color: #fafaf2;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -18,7 +18,7 @@
 @theme {
   --color-primary: #457d58;
   --color-dark: #272727;
-  --color-light: #f6f6e9;
+  --color-light: #fafaf2;
   --color-primary-200: #7d9b76;
   --color-secondaryblue: #cbddd1;
   --font-poppins: Poppins, sans-serif;
@@ -173,4 +173,14 @@
   color: white !important;
   font-weight: bold;
   border-radius: 8px;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.animate-fade-in-out {
+  animation: fadeInOut 4s ease-in-out forwards;
 }

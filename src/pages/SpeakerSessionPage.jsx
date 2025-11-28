@@ -1,135 +1,190 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "../components/UserSidebar";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
-  FaMicrophone,
-  FaMicrophoneSlash,
-  FaVideo,
-  FaVideoSlash,
-  FaPhoneSlash,
-  FaFlag,
-  FaClock,
-} from "react-icons/fa";
-import SpeakerSidebar from "../components/SpeakerSidebar";
+  getSignaling,
+  postAnswer,
+  approveSession,
+} from "../api/sessions";
+import API from "../api/API";
 
-const SpeakerSessionPage = () => {
-  const [callActive, setCallActive] = useState(true);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [muted, setMuted] = useState(false);
-  const [videoOn, setVideoOn] = useState(true);
-  const [feedback, setFeedback] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+const ICE_CONFIG = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
+export default function SpeakerSessionPage() {
+  const { id: sessionIdParam } = useParams();
+  const sessionId = sessionIdParam || (useLocation().state || {}).session?.id;
+  const navigate = useNavigate();
+
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const pcRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const pollRef = useRef(null);
+
+  const [offerReceived, setOfferReceived] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const [remaining, setRemaining] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (callActive) {
-      const timer = setInterval(() => {
-        setTimeElapsed((prev) => prev + 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [callActive]);
+    // poll for offer
+    pollRef.current = setInterval(async () => {
+      try {
+        const sig = await getSignaling(sessionId);
+        if (sig.offer && !offerReceived) {
+          setOfferReceived(true);
+        }
+        if (sig.approved_by_speaker) {
+          setApproved(true);
+          if (sig.started_at && sig.ended_at) {
+            setRemaining(Math.max(0, Math.floor((new Date(sig.ended_at).getTime() - Date.now()) / 1000)));
+          }
+        }
+        if (sig.ended_at) {
+          // remote ended
+          cleanup();
+        }
+      } catch (err) {}
+    }, 1500);
 
-  const endCall = () => {
-    setCallActive(false);
+    return () => clearInterval(pollRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, offerReceived]);
+
+  useEffect(() => {
+    let interval;
+    if (remaining !== null) {
+      interval = setInterval(() => {
+        setRemaining((r) => {
+          if (r <= 1) {
+            clearInterval(interval);
+            cleanup();
+            return 0;
+          }
+          return r - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [remaining]);
+
+  const startLocalMedia = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    localStreamRef.current = stream;
+    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+    return stream;
+  };
+
+  const createPeerConnection = () => {
+    const pc = new RTCPeerConnection(ICE_CONFIG);
+    pcRef.current = pc;
+
+    pc.ontrack = (ev) => {
+      const [remoteStream] = ev.streams;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
+    };
+
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "connected") {
+        setConnected(true);
+      }
+    };
+
+    return pc;
+  };
+
+  const handleApprove = async () => {
+    // approve via backend which sets started_at and ended_at
+    try {
+      await approveSession(sessionId);
+      setApproved(true);
+    } catch (err) {
+      console.error("approve failed", err);
+      setError("Could not approve session.");
+    }
+  };
+
+  const handleAcceptOffer = async () => {
+    setError("");
+    try {
+      const sig = await getSignaling(sessionId);
+      if (!sig.offer) {
+        setError("No offer found.");
+        return;
+      }
+
+      const localStream = await startLocalMedia();
+      const pc = createPeerConnection();
+      localStream.getTracks().forEach((t) => pc.addTrack(t, localStream));
+
+      // set remote description from offer
+      await pc.setRemoteDescription(new RTCSessionDescription(sig.offer));
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      // send answer to backend
+      await postAnswer(sessionId, answer);
+      setConnected(true);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to accept offer.");
+    }
+  };
+
+  const cleanup = () => {
+    try {
+      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch (e) {}
+    try {
+      pcRef.current?.close();
+    } catch (e) {}
+    pcRef.current = null;
+    localStreamRef.current = null;
+    setConnected(false);
+    navigate("/speaker-home");
+  };
+
+  const handleEndCall = () => {
+    cleanup();
   };
 
   return (
-    <div className="flex h-screen bg-light text-primary font-poppins font-bold -mt-25 ml-12 w-full">
-      <SpeakerSidebar />
-      <div className="flex flex-col flex-1 items-center justify-center relative px-6">
-        <h1 className="text-4xl font-extrabold mb-6">Speaker Session</h1>
+    <div className="p-6">
+      <h2 className="text-xl font-semibold">Speaker Session #{sessionId}</h2>
 
-        {callActive ? (
-          <div className="relative w-full max-w-5xl h-[70vh] bg-black rounded-lg overflow-hidden shadow-lg">
-            {/* User Video (Full-Screen) */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-700">
-              <p className="text-xl text-light">User Video Feed</p>
-            </div>
+      <p className="mt-2 text-sm text-gray-600">
+        {offerReceived ? "User requested a call. Accept to start." : "Waiting for user to request a call..."}
+      </p>
 
-            {/* Speaker's Own Small Video */}
-            {videoOn && (
-              <div className="absolute bottom-4 right-4 w-40 h-28 bg-gray-500 rounded-lg flex items-center justify-center">
-                <p className="text-sm text-light font-poppins">Your Video</p>
-              </div>
-            )}
-
-            {/* Time & Controls */}
-            <div className="absolute bottom-0 w-full flex flex-col items-center">
-              <p className="text-lg flex items-center mb-2">
-                <FaClock className="mr-2 text-yellow-500" /> {timeElapsed}s
-              </p>
-
-              <div className="flex gap-6 bg-gray-800 p-4 rounded-full shadow-md">
-                {/* Mute Button */}
-                <button
-                  className={`p-5 rounded-full ${muted ? "bg-gray-500" : "bg-blue-500"} text-light`}
-                  onClick={() => setMuted(!muted)}
-                >
-                  {muted ? <FaMicrophoneSlash size={32} /> : <FaMicrophone size={32} />}
-                </button>
-
-                {/* Video On/Off */}
-                <button
-                  className={`p-5 rounded-full ${videoOn ? "bg-green-500" : "bg-gray-500"} text-light`}
-                  onClick={() => setVideoOn(!videoOn)}
-                >
-                  {videoOn ? <FaVideo size={32} /> : <FaVideoSlash size={32} />}
-                </button>
-
-                {/* Report Issue */}
-                <button className="p-5 bg-yellow-600 rounded-full text-light" onClick={() => setShowReportModal(true)}>
-                  <FaFlag size={32} />
-                </button>
-
-                {/* End Call */}
-                <button className="p-5 bg-red-700 rounded-full text-light" onClick={endCall}>
-                  <FaPhoneSlash size={32} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white text-black shadow-lg p-8 rounded-lg w-full max-w-xl">
-            <h2 className="text-2xl font-bold">Session Feedback</h2>
-            {submitted ? (
-              <p className="text-green-600 mt-2 text-lg">Feedback submitted successfully!</p>
-            ) : (
-              <>
-                <textarea
-                  className="w-full p-4 border rounded-md text-lg mt-2"
-                  placeholder="Provide feedback on user's fluency..."
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                ></textarea>
-                <button
-                  className="mt-3 bg-primary text-white py-3 px-6 rounded-lg text-lg"
-                  onClick={() => setSubmitted(true)}
-                >
-                  Submit Feedback
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Report Issue Modal */}
-        {showReportModal && (
-          <div className="fixed inset-0 bg-none bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white text-black p-6 rounded-lg w-96 text-center">
-              <h2 className="text-2xl font-bold mb-4">Report an Issue</h2>
-              <textarea className="w-full p-4 border rounded-md text-lg" placeholder="Describe the issue..." />
-              <button
-                className="mt-4 bg-red-500 text-white py-3 px-6 rounded-md text-lg"
-                onClick={() => setShowReportModal(false)}
-              >
-                Submit Report
-              </button>
-            </div>
-          </div>
-        )}
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-72 bg-black" />
+        <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-72 bg-black" />
       </div>
+
+      <div className="mt-4 space-x-3">
+        {!approved && (
+          <button onClick={handleApprove} className="px-4 py-2 bg-green-600 text-white rounded">
+            Approve Session (start 10min window)
+          </button>
+        )}
+
+        {offerReceived && (
+          <button onClick={handleAcceptOffer} className="px-4 py-2 bg-primary text-white rounded">
+            Accept Offer (connect)
+          </button>
+        )}
+
+        <button onClick={handleEndCall} className="px-4 py-2 bg-red-600 text-white rounded">
+          End/Close
+        </button>
+      </div>
+
+      {remaining !== null && (
+        <p className="mt-3 text-sm text-red-600">Time remaining: {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, "0")}</p>
+      )}
+
+      {error && <p className="text-red-500 mt-3">{error}</p>}
     </div>
   );
-};
-
-export default SpeakerSessionPage;
+}
