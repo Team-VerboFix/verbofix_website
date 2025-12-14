@@ -1,4 +1,4 @@
-import API from "./API";
+import API from "./api";
 
 // ✅ Fetch active pairing
 export const getActivePairing = async () => {

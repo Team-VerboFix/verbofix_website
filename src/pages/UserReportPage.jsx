@@ -1,123 +1,71 @@
+// src/pages/UserReportPage.jsx yes
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Bar, Line, Doughnut } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement } from "chart.js";
-import UserSidebar from "../components/UserSidebar";
+import { useParams } from "react-router-dom";
+import API from "../api/api";
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement);
-
-const UserReportPage = () => {
-  const navigate = useNavigate();
-  const [reportData, setReportData] = useState(null);
+export default function UserReportPage() {
+  const { id } = useParams();
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch session report from localStorage
-    const storedReport = JSON.parse(localStorage.getItem("sessionReport"));
-    if (storedReport) {
-      setReportData(storedReport);
-    }
-  }, []);
+    const fetchReport = async () => {
+      try {
+        const res = await API.get(`/sessions/${id}/report/`);
+        setReport(res.data);
+      } catch (err) {
+        console.error("Failed to fetch report", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [id]);
 
-  // Dummy Data if No Session Found
-  const defaultReport = {
-    date: "N/A",
-    speechClarity: 75,
-    fluencyScore: 82,
-    recommendation: "Focus on clear pronunciation and pacing.",
-  };
-
-  const data = reportData || defaultReport;
-
-  // Chart Data
-  const barChartData = {
-    labels: ["Speech Clarity", "Fluency Score"],
-    datasets: [
-      {
-        label: "Score",
-        data: [data.speechClarity, data.fluencyScore],
-        backgroundColor: ["#7d9b76", "#272727"],
-      },
-    ],
-  };
-
-  const lineChartData = {
-    labels: ["Session 1", "Session 2", "Session 3", "Latest"],
-    datasets: [
-      {
-        label: "Fluency Progress",
-        data: [70, 75, 78, data.fluencyScore],
-        fill: false,
-        borderColor: "#272727",
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const doughnutData = {
-    labels: ["Clarity", "Fluency"],
-    datasets: [
-      {
-        data: [data.speechClarity, data.fluencyScore],
-        backgroundColor: ["#7d9b76", "#272727"],
-      },
-    ],
-  };
+  if (loading) return <div>Loading...</div>;
+  if (!report) return <div>No report yet — try uploading audio.</div>;
 
   return (
-    <div className="flex">
-      <UserSidebar />
-      <div className="flex flex-col flex-1 items-center min-h-screen bg-light font-poppins px-8 ml-38 py-10">
-        <h1 className="text-4xl font-bold text-dark mb-6">Session Report</h1>
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-semibold mb-4">Session Report</h1>
 
-        {/* Report Summary */}
-        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl mb-8">
-          <h2 className="text-2xl font-semibold text-dark mb-2">Summary</h2>
-          <p className="text-lg text-gray-700"><strong>Date:</strong> {data.date}</p>
-          <p className="text-lg text-gray-700"><strong>Speech Clarity:</strong> {data.speechClarity}%</p>
-          <p className="text-lg text-gray-700"><strong>Fluency Score:</strong> {data.fluencyScore}%</p>
-          <p className="text-lg text-gray-700"><strong>Recommendation:</strong> {data.recommendation}</p>
-        </div>
+      <div className="mb-4">
+        <strong>Stammer rate:</strong> {report.stammer_rate ?? report.stammerRate ?? "N/A"}%
+      </div>
 
-        {/* Charts Section */}
-        <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
-          {/* Bar Chart */}
-          <div className="bg-white p-6 shadow-lg rounded-lg w-80">
-            <h3 className="text-xl font-semibold mb-4">Performance Scores</h3>
-            <Bar data={barChartData} />
-          </div>
+      <div className="mb-4">
+        <strong>Severity:</strong> {report.severity || "N/A"}
+      </div>
 
-          {/* Line Chart */}
-          <div className="bg-white p-6 shadow-lg rounded-lg w-80">
-            <h3 className="text-xl font-semibold mb-4">Fluency Progress</h3>
-            <Line data={lineChartData} />
-          </div>
+      <div className="mb-4">
+        <strong>Duration:</strong> {report.audioDuration || (report.raw_output && report.raw_output.duration) || "N/A"}
+      </div>
 
-          {/* Doughnut Chart */}
-          <div className="bg-white p-6 shadow-lg rounded-lg w-72">
-            <h3 className="text-xl font-semibold mb-4">Overall Insights</h3>
-            <Doughnut data={doughnutData} />
-          </div>
-        </div>
+      <div className="mb-4">
+        <strong>Recommendations:</strong>
+        <ul className="list-disc ml-6">
+          {(report.recommendations || []).map((r, i) => <li key={i}>{r}</li>)}
+        </ul>
+      </div>
 
-        {/* Navigation Buttons */}
-        <div className="mt-8 flex gap-6">
-          <button
-            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-dark"
-            onClick={() => navigate("/user-home")}
-          >
-            Back to Home
-          </button>
-          <button
-            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-dark"
-            onClick={() => navigate("/user-home/session")}
-          >
-            Start New Session
-          </button>
-        </div>
+      <div className="mb-4">
+        <strong>Transcription:</strong>
+        <div className="whitespace-pre-wrap bg-gray-50 p-3 rounded">{report.transcription || "—"}</div>
+      </div>
+
+      <div className="mb-4">
+        <strong>Raw output (debug):</strong>
+        <pre className="bg-black/5 p-3 rounded text-sm">{JSON.stringify(report.raw_output || {}, null, 2)}</pre>
+      </div>
+
+      <div className="mb-4">
+        <strong>Recording:</strong>
+        {report.session && report.session.recording_url ? (
+          <audio src={report.session.recording_url} controls />
+        ) : (
+          <div>No recording available.</div>
+        )}
       </div>
     </div>
   );
-};
-
-export default UserReportPage;
+}

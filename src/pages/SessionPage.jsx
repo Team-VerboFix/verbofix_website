@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { endSession } from "../api/sessions";
 import {
   postOffer,
   postAnswer,
@@ -330,12 +331,18 @@ export default function SessionPage() {
     setWaitingText("Call ended.");
   };
 
-  // End call button handler - also navigate back to home after cleanup
   const handleEndCall = async () => {
-    await endCallCleanup();
-    // Optionally navigate back to home or session list:
-    setShowFeedbackModal(true);
-    // navigate(role === "speaker" ? "/speaker-home" : "/user-home");
+    try {
+      // tell server session is over (mark ended_at)
+      await endSession(sessionId);
+    } catch (err) {
+      // don't block cleanup if server call fails; log it
+      console.warn("endSession API failed:", err);
+    } finally {
+      // cleanup local resources and show feedback modal
+      await endCallCleanup();
+      setShowFeedbackModal(true);
+    }
   };
 
   // Toggle audio
