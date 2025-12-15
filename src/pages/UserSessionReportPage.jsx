@@ -135,7 +135,7 @@ const UserSessionReportPage = () => {
   }
 
   // -------------------------
-  // MAIN RENDER  d
+  // MAIN RENDER
   // -------------------------
   return (
     <div className="flex min-h-screen bg-light font-poppins">
