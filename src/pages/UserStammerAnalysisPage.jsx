@@ -122,7 +122,7 @@ const UserStammerAnalysisPage = () => {
       ctx.fillStyle = "rgb(240, 240, 240)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgb(59, 130, 246)";
+      ctx.strokeStyle = "rgb(0, 153, 76)";
       ctx.beginPath();
 
       const sliceWidth = (canvas.width * 1.0) / bufferLength;
@@ -165,7 +165,7 @@ const UserStammerAnalysisPage = () => {
       ctx.fillStyle = "rgb(240, 240, 240)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgb(16, 185, 129)";
+      ctx.strokeStyle = "rgb(0, 153, 76)";
       ctx.beginPath();
 
       // avoid giant loops when audio long; sample to canvas width
@@ -354,9 +354,9 @@ const UserStammerAnalysisPage = () => {
           transcription.
         </p>
 
-        <div className="bg-white shadow-xl rounded-xl p-6 w-full max-w-3xl mb-8 border border-gray-200">
+        <div className="bg-light shadow-md rounded-xl p-6 w-full max-w-3xl mb-8 border border-gray-200">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
-            <FaMicrophone className="mr-2 text-blue-500" /> Audio Input
+            <FaMicrophone className="mr-2 text-primary hover:text-primary-200" /> Audio Input
           </h2>
 
           <div className="flex flex-col items-center gap-6">
@@ -369,7 +369,7 @@ const UserStammerAnalysisPage = () => {
             {audioBlob && !isRecording && (
               <div className="w-full">
                 <div className="flex items-center gap-4">
-                  <button className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600" onClick={togglePlayPause}>
+                  <button className="p-3 bg-primary text-white rounded-full hover:primary-200" onClick={togglePlayPause}>
                     {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} />}
                   </button>
                   <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} className="hidden" />
@@ -380,7 +380,7 @@ const UserStammerAnalysisPage = () => {
 
             <div className="flex gap-4">
               <button
-                className={`p-4 rounded-full text-white ${isRecording ? "bg-red-500 hover:bg-red-600" : "bg-blue-500 hover:bg-blue-600"}`}
+                className={`p-4 rounded-full text-white ${isRecording ? "bg-red-600 hover:bg-red-400" : "bg-primary hover:bg-primary-200 transition"}`}
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={isProcessing}
               >
@@ -388,7 +388,7 @@ const UserStammerAnalysisPage = () => {
               </button>
 
               <button
-                className="p-4 bg-green-500 rounded-full text-white hover:bg-green-600"
+                className="p-4 bg-primary rounded-full text-white hover:bg-primary-200 transition"
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 disabled={isRecording || isProcessing}
               >
@@ -400,12 +400,12 @@ const UserStammerAnalysisPage = () => {
 
             {audioBlob && !isRecording && (
               <p className="text-gray-600 flex items-center">
-                <FaCheckCircle className="mr-2 text-green-500" /> Audio ready for analysis
+                <FaCheckCircle className="mr-2 text-primary" /> Audio ready for analysis
               </p>
             )}
 
             <button
-              className="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg disabled:opacity-50"
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-primary to-primary-200 text-white rounded-lg disabled:opacity-50"
               onClick={processAudio}
               disabled={isProcessing || !audioBlob}
             >
@@ -415,9 +415,9 @@ const UserStammerAnalysisPage = () => {
         </div>
 
         {report && (
-          <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-3xl border border-gray-200">
+          <div className="bg-light shadow-md rounded-xl p-8 w-full max-w-3xl border border-gray-200">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-              <FaChartBar className="mr-2 text-blue-500" /> Analysis Report
+              <FaChartBar className="mr-2 text-primary" /> Analysis Report
             </h2>
 
             <div className="mb-6">
@@ -427,37 +427,37 @@ const UserStammerAnalysisPage = () => {
               <canvas ref={timelineCanvasRef} width="600" height="50" className="w-full border border-gray-200 rounded-lg" title="Red: Stammered periods, Green: Fluent periods" />
             </div>
 
-            <div className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="mb-6 bg-light p-4 rounded-lg shadow-sm border border-primary-200">
               <p className="text-lg text-gray-700 font-semibold flex items-center mb-2">
-                <FaComment className="mr-2 text-blue-500" /> Transcription
+                <FaComment className="mr-2 text-primary" /> Transcription
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">{report.transcription || "—"}</p>
               <p className="text-sm text-gray-500 mt-2">Note: red highlights are approximate based on detected time ranges.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg shadow-sm">
+              <div className="bg-light p-4 rounded-lg shadow-sm border border-primary-200">
                 <p className="text-lg text-gray-700 flex items-center">
-                  <FaClock className="mr-2 text-blue-500" />
+                  <FaClock className="mr-2 text-primary" />
                   <strong>Date:</strong> {report.date || "—"}
                 </p>
                 <p className="text-lg text-gray-700 flex items-center mt-2">
-                  <FaChartBar className="mr-2 text-purple-500" />
+                  <FaChartBar className="mr-2 text-primary" />
                   <strong>Stammer Rate:</strong> {report.stammerRate || report.stammer_rate || "—"}
                 </p>
                 <p className="text-lg text-gray-700 flex items-center mt-2">
-                  <FaClock className="mr-2 text-green-500" />
+                  <FaClock className="mr-2 text-primary" />
                   <strong>Audio Duration:</strong> {report.audioDuration || "—"}
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg fathom-sm">
+              <div className="bg-light p-4 shadow-sm border border-primary-200 rounded-lg fathom-sm">
                 <p className="text-lg text-gray-700 flex items-center">
-                  <FaCheckCircle className="mr-2 text-green-500" />
+                  <FaCheckCircle className="mr-2 text-primary" />
                   <strong>Total Stammered Chunks:</strong> {report.stammeredChunks ?? "—"}
                 </p>
                 <p className="text-lg text-gray-700 flex items-center mt-2">
-                  <FaCheckCircle className="mr-2 text-blue-500" />
+                  <FaCheckCircle className="mr-2 text-primary" />
                   <strong>Total Fluent Chunks:</strong> {report.fluentChunks ?? "—"}
                 </p>
                 <p className="text-lg text-gray-700 flex items-center mt-2">
@@ -470,14 +470,14 @@ const UserStammerAnalysisPage = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="bg-light p-4 rounded-lg shadow-sm border border-primary-200">
               <p className="text-lg text-gray-700 font-semibold flex items-center mb-2">
-                <FaCheckCircle className="mr-2 text-blue-500" /> Recommendations
+                <FaCheckCircle className="mr-2 text-primary" /> Recommendations
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 {(report.recommendations || []).map((r, i) => (
                   <li key={i} className="text-lg flex items-start">
-                    <FaCheckCircle className="mr-2 text-green-500 mt-1" /> {r}
+                    <FaCheckCircle className="mr-2 text-primary mt-1" /> {r}
                   </li>
                 ))}
               </ul>
@@ -486,11 +486,11 @@ const UserStammerAnalysisPage = () => {
         )}
 
         <div className="mt-8 flex gap-6">
-          <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg" onClick={() => navigate("/user-home")}>
+          <button className="px-6 py-3 bg-gradient-to-r from-primary to-primary-200 text-white rounded-lg" onClick={() => navigate("/user-home")}>
             Back to Home
           </button>
           {report && (
-            <button className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg" onClick={() => navigate("/user-home/report")}>
+            <button className="px-6 py-3 bg-gradient-to-r from-primary to-primary-200 text-white rounded-lg" onClick={() => navigate("/user-home/report")}>
               View Other Reports
             </button>
           )}

@@ -271,15 +271,15 @@ export default function SessionPage() {
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data);
       };
-      recorder.onstop = async () => {
+      recorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
-        try {
-          await uploadAudioFile(sessionId, blob);
-          console.log("User audio uploaded.");
-        } catch (err) {
-          console.error("Audio upload failed:", err);
-        }
+
+        // Fire-and-forget upload (do NOT await)
+        uploadAudioFile(sessionId, blob).catch(() => {
+          console.warn("Audio upload running in background");
+        });
       };
+
       recorder.start();
       recorderRef.current = recorder;
     } catch (err) {

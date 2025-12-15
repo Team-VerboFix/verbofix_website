@@ -15,6 +15,7 @@ import UserSessionPage from './pages/UserSessionPage';
 import UserReportPage from './pages/UserReportPage';
 import UserStammerAnalysisPage from './pages/UserStammerAnalysisPage';
 import SessionPage from './pages/SessionPage';
+import UserSessionReportPage from './pages/UserSessionReportPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/user-home/report" element={<UserReportPage />} />
           <Route path="/user-home/stammer-analysis" element={<UserStammerAnalysisPage />} />
           <Route path="/session/:id" element={<SessionPage />} />
+          <Route path="/session/:id/report" element={<UserSessionReportPage />} />
         </Routes>
       </div>
     </Router>

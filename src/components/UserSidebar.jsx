@@ -11,37 +11,14 @@ const UserSidebar = () => {
               to="/user-home"
               className={({ isActive }) =>
                 `block px-4 py-2 rounded-md transition ${
-                  isActive ? "bg-primary text-light" : "hover:bg-primary hover:text-light"
+                  isActive ? "bg-primary text-light" : "bg-light hover:bg-primary hover:text-light"
                 }`
               }
             >
               Portal Home
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/user-home/session"
-              className={({ isActive }) =>
-                `block px-4 py-2 rounded-md transition ${
-                  isActive ? "bg-primary text-light" : "hover:bg-primary hover:text-light"
-                }`
-              }
-            >
-              Attend Session
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/user-home/report"
-              className={({ isActive }) =>
-                `block px-4 py-2 rounded-md transition ${
-                  isActive ? "bg-primary text-light" : "hover:bg-primary hover:text-light"
-                }`
-              }
-            >
-              Report
-            </NavLink>
-          </li>
+          
           <li>
             <NavLink
               to="/user-home/stammer-analysis"

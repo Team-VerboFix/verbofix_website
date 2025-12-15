@@ -67,7 +67,17 @@ export async function uploadAudioFile(sessionId, blob) {
 
   // let axios figure Content-Type/boundary
   return API.post(`sessions/sessions/${sessionId}/upload-audio/`, fd, {
-    timeout: 120000,
+    timeout: 600000,
     // withCredentials already configured on API instance
   });
 }
+
+export const getReportStatus = async (sessionId) => {
+  const res = await API.get(`sessions/sessions/${sessionId}/report-status/`);
+  return res.data;
+};
+
+export const getSessionReport = async (sessionId) => {
+  const res = await API.get(`/sessions/sessions/${sessionId}/report/`);
+  return res.data;
+};

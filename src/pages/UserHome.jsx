@@ -11,6 +11,7 @@ import {
 } from "../api/sessions";
 import API from "../api/API";
 import speakerSelect from "../assets/speaker-select.png"
+import ProgressChart from "../components/ProgressChart";
 
 const UserHome = () => {
   const location = useLocation();
@@ -125,7 +126,7 @@ const UserHome = () => {
   return (
     <div className="flex">
       <UserSidebar />
-      <div className="flex flex-col flex-1 items-center min-h-screen bg-light font-poppins px-8 py-10">
+      <div className="flex flex-col flex-1 items-center min-h-screen bg-light font-poppins px-8 py-10 ml-22">
         <h1 className="text-4xl font-bold text-dark">
           Welcome, <span className="text-primary">{userDetails.name}!</span>
         </h1>
@@ -181,7 +182,66 @@ const UserHome = () => {
         ) : (
           <>
             {/* ✅ If paired — show current session UI */}
-            <CalendarComponent sessions={sessions} />
+            <CalendarComponent
+              sessions={sessions}
+              onDateClick={(session) => {
+                navigate(`/session/${session.id}/report`);
+              }}
+            />
+
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-6xl">
+
+            {/* Session History */}
+            <div className="bg-light rounded-lg shadow-md border border-primary-200 p-6 flex flex-col max-h-90">
+              <h3 className="text-xl text-dark font-semibold mb-4">
+                Session History
+              </h3>
+
+              <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/60 scrollbar-track-gray-100">
+                <ul className="space-y-3">
+                  {sessions
+                    .filter((s) => s.ended_at)
+                    .sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at))
+                    .map((s) => (
+                      <li
+                        key={s.id}
+                        className="p-4 border rounded-lg flex justify-between items-center hover:bg-gray-300 transition cursor-pointer"
+                        onClick={() => navigate(`/session/${s.id}/report`)}
+                      >
+                        <div>
+                          <p className="font-medium text-dark">
+                            {new Date(s.scheduled_at).toLocaleDateString()}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(s.scheduled_at).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        <span className="text-primary font-semibold">
+                          View →
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="bg-light rounded-lg border border-primary-200 shadow-md p-6 flex flex-col">
+              <h3 className="text-xl text-dark font-semibold mb-4">
+                Your Progress
+              </h3>
+
+              <div className="flex-1 flex items-center justify-center">
+                <ProgressChart sessions={sessions} />
+              </div>
+
+              <p className="text-sm text-gray-500 mt-4 text-center">
+                Stammer rate trend across sessions
+              </p>
+            </div>
+          </div>
+
+
 
             {activeSession ? (
               <div className="mt-8 w-full max-w-lg p-6 bg-white shadow-lg rounded-lg">
