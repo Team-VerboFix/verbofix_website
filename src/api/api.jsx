@@ -28,7 +28,10 @@ API.interceptors.request.use(
     }
 
     // 2) Ensure JSON content-type for json bodies (don't override for multipart)
-    if (!config.headers["Content-Type"]) {
+    if (
+      !config.headers["Content-Type"] &&
+      !(config.data instanceof FormData)
+    ) {
       config.headers["Content-Type"] = "application/json";
     }
 
